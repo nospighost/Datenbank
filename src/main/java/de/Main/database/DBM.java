@@ -45,10 +45,11 @@ public class DBM implements Listener {
 
     private static SQLTabel tabel;
 
-    public DBM(Main pl,String tablename ,HashMap<String, SQLDataType> userdatacolumns) {
-        tabel = new SQLTabel(pl.getConnection(), tablename, userdatacolumns);
+    public DBM(Main pl, SQLConnection connection, String tablename, HashMap<String, SQLDataType> userdatacolumns) {
+        tabel = new SQLTabel(connection, tablename, userdatacolumns);
         pl.getServer().getPluginManager().registerEvents(this, pl);
     }
+
 
     public static void setInt(String table, UUID uuid, String columnName, int value) {
         SQLTabel.Condition cond = new SQLTabel.Condition("owner_uuid", uuid.toString());
