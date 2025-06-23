@@ -23,7 +23,6 @@ public final class Main extends JavaPlugin {
     public static File marketDataFolder;
 
 
-
     @Override
     public void onEnable() {
         // Plugin startup logic
@@ -32,7 +31,7 @@ public final class Main extends JavaPlugin {
         // SQL-Verbindung
         connection = new SQLConnection("localhost", 3306, "admin", "admin", "1234");
         HashMap<String, SQLDataType> userdatacolumns = new HashMap<>();
-        moneyManager = new DBM(this, "OneBlock", userdatacolumns);
+        moneyManager = new DBM(this, connection, "OneBlock", userdatacolumns);
     }
 
     @Override
@@ -44,6 +43,7 @@ public final class Main extends JavaPlugin {
     public SQLConnection getConnection() {
         return connection;
     }
+
     public static Main getInstance() {
         return instance;
     }
