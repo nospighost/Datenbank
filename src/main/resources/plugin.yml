@@ -1,0 +1,4 @@
+name: DatenBankManger
+version: '1.0-SNAPSHOT'
+main: de.Main.Main
+api-version: '1.21'
