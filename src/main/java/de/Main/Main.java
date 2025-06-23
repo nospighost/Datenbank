@@ -25,13 +25,10 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
         instance = this;
 
         // SQL-Verbindung
         connection = new SQLConnection("localhost", 3306, "admin", "admin", "1234");
-        HashMap<String, SQLDataType> userdatacolumns = new HashMap<>();
-        moneyManager = new DBM(this, connection, "OneBlock", userdatacolumns);
     }
 
     @Override

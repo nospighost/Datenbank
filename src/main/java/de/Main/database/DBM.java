@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import de.Main.Main;
@@ -19,16 +18,16 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class DBM implements Listener {
-    private static final Gson gson = new Gson();
+    private  final Gson gson = new Gson();
+    private  SQLTable table;
 
-
-    public static void onPlayerJoin(PlayerJoinEvent event,String tableName,  SQLTabel tabel, HashMap<String, Object> defaultValues) {
+    public  void onPlayerJoin(PlayerJoinEvent event,String tableName, HashMap<String, Object> defaultValues) {
         Player player = event.getPlayer();
         String playerUUID = player.getUniqueId().toString();
 
-        SQLTabel.Condition userdatacondition = new SQLTabel.Condition("owner", player.getName());
+        SQLTable.Condition userdatacondition = new SQLTable.Condition("owner", player.getName());
 
-        if (!tabel.exits(tableName, userdatacondition)) {
+        if (!table.exits(tableName, userdatacondition)) {
             for (Map.Entry<String, Object> entry : defaultValues.entrySet()) {
                 String column = entry.getKey();
                 Object value = entry.getValue();
@@ -36,70 +35,67 @@ public class DBM implements Listener {
                     value = playerUUID;
                 }
 
-                tabel.set(tableName, column, value, userdatacondition);
+                table.set(tableName, column, value, userdatacondition);
             }
         }
     }
 
 
-
-    private static SQLTabel tabel;
-
-    public DBM(Main pl, SQLConnection connection, String tablename, HashMap<String, SQLDataType> userdatacolumns) {
-        tabel = new SQLTabel(connection, tablename, userdatacolumns);
+    public DBM(Main pl,String tablename ,HashMap<String, SQLDataType> userdatacolumns) {
+        table = new SQLTable(pl.getConnection(), tablename, userdatacolumns);
         pl.getServer().getPluginManager().registerEvents(this, pl);
     }
 
 
-    public static void setInt(String table, UUID uuid, String columnName, int value) {
-        SQLTabel.Condition cond = new SQLTabel.Condition("owner_uuid", uuid.toString());
-        tabel.set(table, columnName, value, cond);
+    public  void setInt(String table, UUID uuid, String columnName, int value) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
+        this.table.set(table, columnName, value, cond);
     }
 
-    public static void setString(String table, UUID uuid, String columnName, String value) {
-        SQLTabel.Condition cond = new SQLTabel.Condition("owner_uuid", uuid.toString());
-        tabel.set(table, columnName, value, cond);
+    public void setString(String table, UUID uuid, String columnName, String value) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
+        this.table.set(table, columnName, value, cond);
     }
 
-    public static void setBoolean(String table, UUID uuid, String columnName, boolean value) {
-        SQLTabel.Condition cond = new SQLTabel.Condition("owner_uuid", uuid.toString());
-        tabel.set(table, columnName, value, cond);
+    public  void setBoolean(String table, UUID uuid, String columnName, boolean value) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
+        this.table.set(table, columnName, value, cond);
     }
 
-    public static void setList(String table, UUID uuid, String columnName, List<String> list) {
-        SQLTabel.Condition cond = new SQLTabel.Condition("owner_uuid", uuid.toString());
+    public  void setList(String table, UUID uuid, String columnName, List<String> list) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         String csv = String.join(",", list);
-        tabel.set(table, columnName, csv, cond);
+        this.table.set(table, columnName, csv, cond);
     }
 
-    public static String getString(String table, UUID uuid, String columnName, String defaultValue) {
-        SQLTabel.Condition condition = new SQLTabel.Condition("owner_uuid", uuid.toString());
-        if (tabel.exits("userdata", condition)) {
-            return tabel.getString(table, columnName, condition);
+    public  String getString(String table, UUID uuid, String columnName, String defaultValue) {
+        SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
+        if (this.table.exits(table, condition)) {
+            return this.table.getString(table, columnName, condition);
         }
-        tabel.set(table, columnName, defaultValue, condition);
+        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
-    public static int getInt(String table, UUID uuid, String columnName, int defaultValue) {
-        SQLTabel.Condition condition = new SQLTabel.Condition("owner_uuid", uuid.toString());
-        if (tabel.exits("userdata", condition)) {
-            return tabel.getInt(table, columnName, condition);
+    public  int getInt(String table, UUID uuid, String columnName, int defaultValue) {
+        SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
+        if (this.table.exits(table, condition)) {
+            return this.table.getInt(table, columnName, condition);
         }
-        tabel.set(table, columnName, defaultValue, condition);
+        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
-    public static boolean getBoolean(String table, UUID uuid, String columnName, boolean defaultValue) {
-        SQLTabel.Condition condition = new SQLTabel.Condition("owner_uuid", uuid.toString());
-        if (tabel.exits(table, condition)) {
-            return tabel.getBoolean(table, columnName, condition);
+    public  boolean getBoolean(String table, UUID uuid, String columnName, boolean defaultValue) {
+        SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
+        if (this.table.exits(table, condition)) {
+            return this.table.getBoolean(table, columnName, condition);
         }
-        tabel.set(table, columnName, defaultValue, condition);
+        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
-    public static List<String> getList(UUID ownerUUID, String key, List<String> defaultList) {
+    public  List<String> getList(UUID ownerUUID, String key, List<String> defaultList) {
         String json = getJsonFromDB(ownerUUID, key);
         if (json == null || json.isEmpty()) {
             return defaultList;
@@ -118,12 +114,12 @@ public class DBM implements Listener {
         }
     }
 
-    private static String getJsonFromDB(UUID ownerUUID, String key) {
+    private  String getJsonFromDB(UUID ownerUUID, String key) {
 
         return null;
     }
 
-    public static UUID getUUID(String table, UUID userUUID, String key, UUID defaultValue) {
+    public  UUID getUUID(String table, UUID userUUID, String key, UUID defaultValue) {
         try {
             String uuidString = getString(table, userUUID, key, null);
             if (uuidString != null && !uuidString.isEmpty()) {
@@ -135,7 +131,7 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public static List<String> getStringList(String table, UUID uuid, String column) {
+    public  List<String> getStringList(String table, UUID uuid, String column) {
         String listAsString = getString(table, uuid, column, ""); // Liste als CSV-String abrufen  (in komma umgewandlete Strings )
         if (listAsString.isEmpty()) {
             return new ArrayList<>();
@@ -143,12 +139,12 @@ public class DBM implements Listener {
         return Arrays.asList(listAsString.split(",")); // CSV-String in Liste umwandeln  (in komma umgewandlete Strings )
     }
 
-    public static void setStringList(String table, UUID uuid, String column, List<String> values) {
+    public  void setStringList(String table, UUID uuid, String column, List<String> values) {
         String listAsString = String.join(",", values); // Liste in CSV-String umwandeln (in komma umgewandlete Strings )
         setString(table, uuid, column, listAsString); //In die Datenbank
     }
 
-    public static int getTotalBlocks() {
+    public  int getTotalBlocks() {
         int totalBlocks = -1;
         Connection connection = null; // Connection bleibt offen
         try {
