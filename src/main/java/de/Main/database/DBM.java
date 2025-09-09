@@ -18,10 +18,10 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class DBM implements Listener {
-    private  final Gson gson = new Gson();
-    private  SQLTable table;
+    private final Gson gson = new Gson();
+    private SQLTable table;
 
-    public  void onPlayerJoin(PlayerJoinEvent event,String tableName, HashMap<String, Object> defaultValues) {
+    public void onPlayerJoin(PlayerJoinEvent event, String tableName, HashMap<String, Object> defaultValues) {
         Player player = event.getPlayer();
         String playerUUID = player.getUniqueId().toString();
 
@@ -40,14 +40,17 @@ public class DBM implements Listener {
         }
     }
 
-
-    public DBM(Main pl,String tablename ,HashMap<String, SQLDataType> userdatacolumns) {
+    public DBM(Main pl, String tablename, HashMap<String, SQLDataType> userdatacolumns) {
         table = new SQLTable(pl.getConnection(), tablename, userdatacolumns);
         pl.getServer().getPluginManager().registerEvents(this, pl);
     }
 
+    public void setInt(String table, UUID uuid, String columnName, int value) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
+        this.table.set(table, columnName, value, cond);
+    }
 
-    public  void setInt(String table, UUID uuid, String columnName, int value) {
+    public void setDouble(String table, UUID uuid, String columnName, double value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
@@ -57,18 +60,18 @@ public class DBM implements Listener {
         this.table.set(table, columnName, value, cond);
     }
 
-    public  void setBoolean(String table, UUID uuid, String columnName, boolean value) {
+    public void setBoolean(String table, UUID uuid, String columnName, boolean value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
 
-    public  void setList(String table, UUID uuid, String columnName, List<String> list) {
+    public void setList(String table, UUID uuid, String columnName, List<String> list) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         String csv = String.join(",", list);
         this.table.set(table, columnName, csv, cond);
     }
 
-    public  String getString(String table, UUID uuid, String columnName, String defaultValue) {
+    public String getString(String table, UUID uuid, String columnName, String defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getString(table, columnName, condition);
@@ -77,7 +80,7 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public  int getInt(String table, UUID uuid, String columnName, int defaultValue) {
+    public int getInt(String table, UUID uuid, String columnName, int defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getInt(table, columnName, condition);
@@ -86,7 +89,16 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public  boolean getBoolean(String table, UUID uuid, String columnName, boolean defaultValue) {
+    public double getDouble(String table, UUID uuid, String columnName, double defaultValue) {
+        SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
+        if (this.table.exits(table, condition)) {
+            return this.table.getDouble(table, columnName, condition);
+        }
+        this.table.set(table, columnName, defaultValue, condition);
+        return defaultValue;
+    }
+
+    public boolean getBoolean(String table, UUID uuid, String columnName, boolean defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getBoolean(table, columnName, condition);
@@ -95,7 +107,7 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public  List<String> getList(UUID ownerUUID, String key, List<String> defaultList) {
+    public List<String> getList(UUID ownerUUID, String key, List<String> defaultList) {
         String json = getJsonFromDB(ownerUUID, key);
         if (json == null || json.isEmpty()) {
             return defaultList;
@@ -106,20 +118,18 @@ public class DBM implements Listener {
             if (!element.isJsonArray()) {
                 return defaultList;
             }
-            return gson.fromJson(json, new TypeToken<List<String>>() {
-            }.getType());
+            return gson.fromJson(json, new TypeToken<List<String>>() {}.getType());
         } catch (JsonSyntaxException e) {
             e.printStackTrace();
             return defaultList;
         }
     }
 
-    private  String getJsonFromDB(UUID ownerUUID, String key) {
-
+    private String getJsonFromDB(UUID ownerUUID, String key) {
         return null;
     }
 
-    public  UUID getUUID(String table, UUID userUUID, String key, UUID defaultValue) {
+    public UUID getUUID(String table, UUID userUUID, String key, UUID defaultValue) {
         try {
             String uuidString = getString(table, userUUID, key, null);
             if (uuidString != null && !uuidString.isEmpty()) {
@@ -131,22 +141,22 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public  List<String> getStringList(String table, UUID uuid, String column) {
-        String listAsString = getString(table, uuid, column, ""); // Liste als CSV-String abrufen  (in komma umgewandlete Strings )
+    public List<String> getStringList(String table, UUID uuid, String column) {
+        String listAsString = getString(table, uuid, column, "");
         if (listAsString.isEmpty()) {
             return new ArrayList<>();
         }
-        return Arrays.asList(listAsString.split(",")); // CSV-String in Liste umwandeln  (in komma umgewandlete Strings )
+        return Arrays.asList(listAsString.split(","));
     }
 
-    public  void setStringList(String table, UUID uuid, String column, List<String> values) {
-        String listAsString = String.join(",", values); // Liste in CSV-String umwandeln (in komma umgewandlete Strings )
-        setString(table, uuid, column, listAsString); //In die Datenbank
+    public void setStringList(String table, UUID uuid, String column, List<String> values) {
+        String listAsString = String.join(",", values);
+        setString(table, uuid, column, listAsString);
     }
 
-    public  int getTotalBlocks() {
+    public int getTotalBlocks() {
         int totalBlocks = -1;
-        Connection connection = null; // Connection bleibt offen
+        Connection connection = null;
         try {
             connection = Main.getInstance().getConnection().getConnection();
         } catch (SQLException e) {
@@ -167,6 +177,4 @@ public class DBM implements Listener {
 
         return totalBlocks;
     }
-
-
 }
