@@ -41,40 +41,60 @@ public class DBM implements Listener {
     }
 
 
+    public void ensurePlayerData(UUID playerUUID, String tableName, HashMap<String, Object> defaultValues) {
+
+        SQLTable.Condition userdatacondition = new SQLTable.Condition("owner", playerUUID.toString());
+        if (!table.exits(tableName, userdatacondition)) {
+            for (Map.Entry<String, Object> entry : defaultValues.entrySet()) {
+                String column = entry.getKey();
+                Object value = entry.getValue();
+                if (column.equals("owner_uuid") && (value == null || value.toString().isEmpty())) {
+                    value = playerUUID;
+                }
+
+                table.set(tableName, column, value, userdatacondition);
+            }
+        }
+    }
+
+
+
+
+
     public DBM(Main pl,String tablename ,HashMap<String, SQLDataType> userdatacolumns) {
         table = new SQLTable(pl.getConnection(), tablename, userdatacolumns);
         pl.getServer().getPluginManager().registerEvents(this, pl);
     }
 
 
-    public  void setInt(String table, UUID uuid, String columnName, int value) {
+    public void setInt(String table, Object object, String columnName, int value) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", object.toString());
+        this.table.set(table, columnName, value, cond);
+    }
+
+    public  void setDouble(String table, Object uuid, String columnName, double value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
 
-    public  void setDouble(String table, UUID uuid, String columnName, double value) {
+
+    public void setString(String table, Object uuid, String columnName, String value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
 
-
-    public void setString(String table, UUID uuid, String columnName, String value) {
+    public  void setBoolean(String table, Object uuid, String columnName, boolean value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
 
-    public  void setBoolean(String table, UUID uuid, String columnName, boolean value) {
-        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
-        this.table.set(table, columnName, value, cond);
-    }
-
-    public  void setList(String table, UUID uuid, String columnName, List<String> list) {
+    public  void setList(String table, Object uuid, String columnName, List<String> list) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         String csv = String.join(",", list);
         this.table.set(table, columnName, csv, cond);
     }
 
-    public  String getString(String table, UUID uuid, String columnName, String defaultValue) {
+    public  String getString(String table, Object uuid, String columnName, String defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getString(table, columnName, condition);
@@ -83,7 +103,7 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public  int getInt(String table, UUID uuid, String columnName, int defaultValue) {
+    public  int getInt(String table, Object uuid, String columnName, int defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getInt(table, columnName, condition);
@@ -92,7 +112,7 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public double getDouble(String table, UUID uuid, String columnName, double defaultValue) {
+    public double getDouble(String table, Object uuid, String columnName, double defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getDouble(table, columnName, condition);
@@ -102,7 +122,7 @@ public class DBM implements Listener {
     }
 
 
-    public  boolean getBoolean(String table, UUID uuid, String columnName, boolean defaultValue) {
+    public  boolean getBoolean(String table, Object uuid, String columnName, boolean defaultValue) {
         SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
         if (this.table.exits(table, condition)) {
             return this.table.getBoolean(table, columnName, condition);
@@ -111,7 +131,7 @@ public class DBM implements Listener {
         return defaultValue;
     }
 
-    public  List<String> getList(UUID ownerUUID, String key, List<String> defaultList) {
+    public List<String> getList( UUID ownerUUID, String key, List<String> defaultList) {
         String json = getJsonFromDB(ownerUUID, key);
         if (json == null || json.isEmpty()) {
             return defaultList;

@@ -1,10 +1,15 @@
 package de.Main.database;
 
+
+
 public enum SQLDataType {
-    CHAR(255), //Datentypen
+    CHAR(255),
     BOOLEAN,
-    TEXT(255),//Datentypen
-    INT(255); //Datentypen
+    TEXT(255),
+    INT(255),
+    Double(255),
+    World(255);
+
     private final long size;
 
     SQLDataType() {

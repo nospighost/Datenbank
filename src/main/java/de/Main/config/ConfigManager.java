@@ -61,16 +61,13 @@ public class ConfigManager {
         Map<String, String> configMap = new HashMap<>();
         String content = loadConfig(fileName);
 
-        if (content == null) return configMap; // falls Datei nicht geladen werden konnte
+        if (content == null) return configMap;
 
-        // jede Zeile durchgehen
         String[] lines = content.split("\\r?\\n");
         for (String line : lines) {
             line = line.trim();
-            // Kommentarzeilen oder leere Zeilen überspringen
             if (line.isEmpty() || line.startsWith("#")) continue;
 
-            // Key-Value trennen bei '='
             String[] parts = line.split("=", 2);
             if (parts.length == 2) {
                 String key = parts[0].trim();
