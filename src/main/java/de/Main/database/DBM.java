@@ -21,45 +21,37 @@ public class DBM implements Listener {
     private  final Gson gson = new Gson();
     private  SQLTable table;
 
-    public  void onPlayerJoin(PlayerJoinEvent event,String tableName, HashMap<String, Object> defaultValues) {
+    public void onPlayerJoin(PlayerJoinEvent event, String tableName, HashMap<String, Object> defaultValues) {
         Player player = event.getPlayer();
         String playerUUID = player.getUniqueId().toString();
 
-        SQLTable.Condition userdatacondition = new SQLTable.Condition("owner", player.getName());
+        SQLTable.Condition userdatacondition = new SQLTable.Condition("owner_uuid", playerUUID);
 
         if (!table.exits(tableName, userdatacondition)) {
+            table.insert(tableName, defaultValues);
+        } else {
             for (Map.Entry<String, Object> entry : defaultValues.entrySet()) {
                 String column = entry.getKey();
                 Object value = entry.getValue();
-                if (column.equals("owner_uuid") && (value == null || value.toString().isEmpty())) {
-                    value = playerUUID;
-                }
-
                 table.set(tableName, column, value, userdatacondition);
             }
         }
     }
 
 
-    public void ensurePlayerData(UUID playerUUID, String tableName, HashMap<String, Object> defaultValues) {
+    public void insertDefaultValues(String tableName, UUID playerUUID , HashMap<String, Object> defaultValues){
+        SQLTable.Condition userdatacondition = new SQLTable.Condition("owner_uuid", String.valueOf(playerUUID));
 
-        SQLTable.Condition userdatacondition = new SQLTable.Condition("owner", playerUUID.toString());
         if (!table.exits(tableName, userdatacondition)) {
+            table.insert(tableName, defaultValues);
+        } else {
             for (Map.Entry<String, Object> entry : defaultValues.entrySet()) {
                 String column = entry.getKey();
                 Object value = entry.getValue();
-                if (column.equals("owner_uuid") && (value == null || value.toString().isEmpty())) {
-                    value = playerUUID;
-                }
-
                 table.set(tableName, column, value, userdatacondition);
             }
         }
     }
-
-
-
-
 
     public DBM(Main pl,String tablename ,HashMap<String, SQLDataType> userdatacolumns) {
         table = new SQLTable(pl.getConnection(), tablename, userdatacolumns);
@@ -67,8 +59,8 @@ public class DBM implements Listener {
     }
 
 
-    public void setInt(String table, Object object, String columnName, int value) {
-        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", object.toString());
+    public  void setInt(String table, Object uuid, String columnName, int value) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
 
@@ -99,7 +91,6 @@ public class DBM implements Listener {
         if (this.table.exits(table, condition)) {
             return this.table.getString(table, columnName, condition);
         }
-        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
@@ -108,7 +99,6 @@ public class DBM implements Listener {
         if (this.table.exits(table, condition)) {
             return this.table.getInt(table, columnName, condition);
         }
-        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
@@ -117,7 +107,6 @@ public class DBM implements Listener {
         if (this.table.exits(table, condition)) {
             return this.table.getDouble(table, columnName, condition);
         }
-        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
@@ -127,11 +116,10 @@ public class DBM implements Listener {
         if (this.table.exits(table, condition)) {
             return this.table.getBoolean(table, columnName, condition);
         }
-        this.table.set(table, columnName, defaultValue, condition);
         return defaultValue;
     }
 
-    public List<String> getList( UUID ownerUUID, String key, List<String> defaultList) {
+    public  List<String> getList(UUID ownerUUID, String key, List<String> defaultList) {
         String json = getJsonFromDB(ownerUUID, key);
         if (json == null || json.isEmpty()) {
             return defaultList;
