@@ -39,7 +39,7 @@ public class DBM implements Listener {
     }
 
 
-    public void insertDefaultValues(String tableName, UUID playerUUID , HashMap<String, Object> defaultValues){
+    public void insertDefaultValues(String tableName, Object playerUUID , HashMap<String, Object> defaultValues){
         SQLTable.Condition userdatacondition = new SQLTable.Condition("owner_uuid", String.valueOf(playerUUID));
 
         if (!table.exits(tableName, userdatacondition)) {
