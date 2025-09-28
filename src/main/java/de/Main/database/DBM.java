@@ -7,9 +7,9 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import de.Main.Main;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,9 +17,16 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 
-public class DBM implements Listener {
+public class DBM  {
     private  final Gson gson = new Gson();
+    private final SQLConnection connection;
     private  SQLTable table;
+
+
+    public DBM(SQLConnection connection, String tablename , HashMap<String, SQLDataType> userdatacolumns) {
+        table = new SQLTable(connection, tablename, userdatacolumns);
+        this.connection = connection;
+    }
 
     public void onPlayerJoin(PlayerJoinEvent event, String tableName, HashMap<String, Object> defaultValues) {
         Player player = event.getPlayer();
@@ -27,15 +34,25 @@ public class DBM implements Listener {
 
         SQLTable.Condition userdatacondition = new SQLTable.Condition("owner_uuid", playerUUID);
 
-        if (!table.exits(tableName, userdatacondition)) {
+        if (!this.table.exits(tableName, userdatacondition)) {
             table.insert(tableName, defaultValues);
-        } else {
-            for (Map.Entry<String, Object> entry : defaultValues.entrySet()) {
-                String column = entry.getKey();
-                Object value = entry.getValue();
-                table.set(tableName, column, value, userdatacondition);
+        }
+    }
+
+
+
+
+    public List<UUID> getAllUUIDs(String tableName, String uuidColumn) {
+        List<UUID> uuids = new ArrayList<>();
+        List<Object> uuidObjects = table.getAllValues(tableName, uuidColumn);
+        for (Object obj : uuidObjects) {
+            if (obj != null) {
+                try {
+                    uuids.add(UUID.fromString(obj.toString()));
+                } catch (IllegalArgumentException ignored) {}
             }
         }
+        return uuids;
     }
 
 
@@ -53,12 +70,6 @@ public class DBM implements Listener {
         }
     }
 
-    public DBM(Main pl,String tablename ,HashMap<String, SQLDataType> userdatacolumns) {
-        table = new SQLTable(pl.getConnection(), tablename, userdatacolumns);
-        pl.getServer().getPluginManager().registerEvents(this, pl);
-    }
-
-
     public  void setInt(String table, Object uuid, String columnName, int value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
@@ -68,6 +79,13 @@ public class DBM implements Listener {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
     }
+
+    public void remove(String table, Object uuid) {
+        SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
+        this.table.remove(table, condition);
+    }
+
+
 
 
     public void setString(String table, Object uuid, String columnName, String value) {
@@ -109,6 +127,8 @@ public class DBM implements Listener {
         }
         return defaultValue;
     }
+
+
 
 
     public  boolean getBoolean(String table, Object uuid, String columnName, boolean defaultValue) {
@@ -170,15 +190,9 @@ public class DBM implements Listener {
 
     public  int getTotalBlocks() {
         int totalBlocks = -1;
-        Connection connection = null;
-        try {
-            connection = Main.getInstance().getConnection().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         String sql = "SELECT TotalBlocks FROM userdata LIMIT 1";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = this.connection.getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
@@ -186,7 +200,7 @@ public class DBM implements Listener {
             }
 
         } catch (SQLException e) {
-            Main.getInstance().getLogger().log(Level.SEVERE, "Fehler beim Abrufen von TotalBlocks", e);
+           Bukkit.getLogger().log(Level.SEVERE, "Fehler beim Abrufen von TotalBlocks", e);
         }
 
         return totalBlocks;
