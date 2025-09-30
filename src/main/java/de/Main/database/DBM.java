@@ -53,18 +53,19 @@ public class DBM  {
         return uuids;
     }
 
-    public List<Object> getAllValues(String tableName, String columnName) {
-        List<Object> values = new ArrayList<>();
-        List<Object> columnObjects = Collections.singletonList(table.getAllValues(tableName, columnName));
+    public List<String> getAllValues(String tableName, String columnName) {
+        List<String> values = new ArrayList<>();
+        List<String> columnObjects = table.getAllValues(tableName, columnName);
 
         for (Object obj : columnObjects) {
             if (obj != null) {
-                values.add(obj);
+                values.add(obj.toString());
             }
         }
 
         return values;
     }
+
 
 
 
