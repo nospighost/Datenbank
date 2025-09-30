@@ -57,6 +57,22 @@ public class DBM  {
     }
 
 
+    public List<Object> getAllValues(String tableName, String uuidColumn) {
+        List<Object> uuids = new ArrayList<>();
+        List<Object> uuidObjects = table.getAllValues(tableName, uuidColumn);
+        for (Object obj : uuidObjects) {
+            if (obj != null) {
+                try {
+                    uuids.add(UUID.fromString(obj.toString()));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+        return uuids;
+    }
+
+
+
+
     public void insertDefaultValues(String tableName, Object playerUUID , HashMap<String, Object> defaultValues){
         SQLTable.Condition userdatacondition = new SQLTable.Condition("owner_uuid", String.valueOf(playerUUID));
 
