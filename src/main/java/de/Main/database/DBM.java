@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -85,6 +86,20 @@ public class DBM  {
     public void setString(String table, Object uuid, String columnName, String value) {
         SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
         this.table.set(table, columnName, value, cond);
+    }
+
+
+    public void setLocation(String table, Object uuid, String columnName, Location location) {
+        SQLTable.Condition cond = new SQLTable.Condition("owner_uuid", uuid.toString());
+        this.table.set(table, columnName, location, cond);
+    }
+
+    public Location getLocation(String table, Object uuid, String columnName, Location defaultValue) {
+        SQLTable.Condition condition = new SQLTable.Condition("owner_uuid", uuid.toString());
+        if (this.table.exits(table, condition)) {
+            return this.table.getLocation(table, columnName, condition);
+        }
+        return defaultValue;
     }
 
     public  void setBoolean(String table, Object uuid, String columnName, boolean value) {
