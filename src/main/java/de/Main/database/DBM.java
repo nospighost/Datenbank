@@ -9,9 +9,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,7 +42,7 @@ public class DBM  {
 
     public List<UUID> getAllUUIDs(String tableName, String uuidColumn) {
         List<UUID> uuids = new ArrayList<>();
-        List<Object> uuidObjects = table.getAllValues(tableName, uuidColumn);
+        List<Object> uuidObjects = Collections.singletonList(table.getAllValues(tableName, uuidColumn));
         for (Object obj : uuidObjects) {
             if (obj != null) {
                 try {
@@ -56,19 +53,20 @@ public class DBM  {
         return uuids;
     }
 
+    public List<Object> getAllValues(String tableName, String columnName) {
+        List<Object> values = new ArrayList<>();
+        List<Object> columnObjects = Collections.singletonList(table.getAllValues(tableName, columnName));
 
-    public List<Object> getAllValues(String tableName, String uuidColumn) {
-        List<Object> uuids = new ArrayList<>();
-        List<Object> uuidObjects = table.getAllValues(tableName, uuidColumn);
-        for (Object obj : uuidObjects) {
+        for (Object obj : columnObjects) {
             if (obj != null) {
-                try {
-                    uuids.add(UUID.fromString(obj.toString()));
-                } catch (IllegalArgumentException ignored) {}
+                values.add(obj);
             }
         }
-        return uuids;
+
+        return values;
     }
+
+
 
 
 
