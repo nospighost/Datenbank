@@ -61,12 +61,6 @@ public class DBM  {
 
         if (!table.exits(tableName, userdatacondition)) {
             table.insert(tableName, defaultValues);
-        } else {
-            for (Map.Entry<String, Object> entry : defaultValues.entrySet()) {
-                String column = entry.getKey();
-                Object value = entry.getValue();
-                table.set(tableName, column, value, userdatacondition);
-            }
         }
     }
 
