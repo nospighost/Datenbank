@@ -7,8 +7,10 @@ public enum SQLDataType {
     BOOLEAN,
     TEXT(255),
     INT(255),
-    Double(255),
-    World(255);
+    DOUBLE(255),
+    WORLD(255),
+    LONG;
+
 
     private final long size;
 
